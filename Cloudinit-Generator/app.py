@@ -5,12 +5,32 @@ import re
 
 app = Flask(__name__)
 
+# Function to clean up files in the /tmp/CB-SETUP/ca-iso/ directory before running the main script
+def pre_cleanup():
+    ca_iso_dir = '/tmp/CB-SETUP/ca-iso/'
+    sudo_password = os.environ.get('SUDO_PASSWORD')
+    
+    if sudo_password and os.path.exists(ca_iso_dir):
+        sudo_password_bytes = sudo_password.encode() + b'\n'
+        cleanup_command = f"sudo rm -rf {ca_iso_dir}*"
+
+        # Execute the cleanup command
+        cleanup_result = subprocess.run(cleanup_command, input=sudo_password_bytes, shell=True, capture_output=True)
+
+        # Print the result for debugging
+        cleanup_output = cleanup_result.stdout.decode() + cleanup_result.stderr.decode()
+        print(f"Pre-cleanup output: {cleanup_output}")
+        print(f"Pre-cleanup return code: {cleanup_result.returncode}")
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/submit', methods=['POST'])
 def submit():
+    # Perform cleanup before running the main script
+    pre_cleanup()
+
     hypervisor = request.form['HYPERVISOR']
     CB_OTP = request.form['CB_OTP']
     ARM_MODE = request.form['ARM_MODE']
@@ -35,7 +55,7 @@ runcmd:
     # Determine the script to use based on the hypervisor selection
     if hypervisor == 'hyperv':
         script = '/home/cb/flask-apps/cloudinit-generator/brink_connector_deploy_hyperv.sh'
-    elif hypervisor == 'prox':
+    elif hypervisor == 'proxmox':
         script = '/home/cb/flask-apps/cloudinit-generator/brink_connector_deploy_proxmox.sh'
     else:
         script = '/home/cb/flask-apps/cloudinit-generator/brink_connector_deploy_vmware.sh'
@@ -90,15 +110,7 @@ runcmd:
         iso_file = match.group(1)
         if os.path.exists(iso_file):
             # Send the ISO file to the user
-            response = send_file(iso_file, as_attachment=True)
-
-            # Clean up the /tmp/CB-SETUP/ca-iso/ directory using sudo
-            ca_iso_dir = '/tmp/CB-SETUP/ca-iso/'
-            if os.path.exists(ca_iso_dir):
-                cleanup_command = ['sudo', '-S', 'rm', '-rf', ca_iso_dir + '*']
-                subprocess.run(cleanup_command, input=sudo_password_bytes)
-
-            return response
+            return send_file(iso_file, as_attachment=True)
         else:
             return "Error: File not found"
     else:
