@@ -99,8 +99,9 @@
 
         function validateForm() {
             var otpPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-            var ipPattern = /^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$/;
-            var dnsPattern = /^(\d{1,3}\.){3}\d{1,3}(,\s*(\d{1,3}\.){3}\d{1,3})*$/;
+            var ipCidrPattern = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([0-9]|[1-2][0-9]|3[0-2])$/;
+            var ipPattern = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+            var dnsPattern = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(,((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))*$/;
 
             var otp = document.getElementById('CB_OTP').value;
             var inetIp = document.getElementById('INET_IP').value;
@@ -112,18 +113,18 @@
                 return false;
             }
 
-            if (!ipPattern.test(inetIp)) {
-                alert("Invalid IP Address and Mask CIDR format. Expected format: x.x.x.x/x");
+            if (!ipCidrPattern.test(inetIp)) {
+                alert("Invalid IP Address and Mask CIDR format. Expected format: 192.168.1.1/24");
                 return false;
             }
 
             if (!ipPattern.test(inetGw)) {
-                alert("Invalid Internet Gateway format. Expected format: x.x.x.x");
+                alert("Invalid Internet Gateway format. Expected format: 192.168.1.1");
                 return false;
             }
 
             if (nameServersInet && !dnsPattern.test(nameServersInet)) {
-                alert("Invalid DNS format. Expected format: x.x.x.x,y.y.y.y");
+                alert("Invalid DNS format. Expected format: 192.168.1.1 or 192.168.1.1,192.168.1.2");
                 return false;
             }
 
@@ -176,23 +177,23 @@
             </select>
 
             <label for="INET_IP">IP Address and Mask CIDR (ex: 192.168.1.1/24):</label>
-            <input type="text" id="INET_IP" name="INET_IP" required pattern="^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$" title="Expected format: x.x.x.x/x">
+            <input type="text" id="INET_IP" name="INET_IP" required pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([0-9]|[1-2][0-9]|3[0-2])$" title="Expected format: 192.168.1.1/24">
 
             <label for="INET_GW">Default Gateway:</label>
-            <input type="text" id="INET_GW" name="INET_GW" required pattern="^(\d{1,3}\.){3}\d{1,3}$" title="Expected format: x.x.x.x">
+            <input type="text" id="INET_GW" name="INET_GW" required pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" title="Expected format: 192.168.1.1">
 
             <label for="NAME_SERVERS_INET">DNS IP(s) (Comma Separated List):</label>
-            <input type="text" id="NAME_SERVERS_INET" name="NAME_SERVERS_INET" pattern="^(\d{1,3}\.){3}\d{1,3}(,\s*(\d{1,3}\.){3}\d{1,3})*$" title="Expected format: x.x.x.x,y.y.y.y">
+            <input type="text" id="NAME_SERVERS_INET" name="NAME_SERVERS_INET" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(,((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))*$" title="Expected format: 192.168.1.1 or 192.168.1.1,192.168.1.2">
 
             <div id="datacenter-fields" class="hidden">
                 <label for="DC_IP">Datacenter Interface IP:</label>
-                <input type="text" id="DC_IP" name="DC_IP" pattern="^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$" title="Expected format: x.x.x.x/x">
+                <input type="text" id="DC_IP" name="DC_IP" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([0-9]|[1-2][0-9]|3[0-2])$" title="Expected format: 192.168.1.1/24">
 
                 <label for="DC_GW">Datacenter Interface Gateway:</label>
-                <input type="text" id="DC_GW" name="DC_GW" pattern="^(\d{1,3}\.){3}\d{1,3}$" title="Expected format: x.x.x.x">
+                <input type="text" id="DC_GW" name="DC_GW" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" title="Expected format: 192.168.1.1">
 
                 <label for="NAME_SERVERS_DC">DNS IPs for Datacenter Interface:</label>
-                <input type="text" id="NAME_SERVERS_DC" name="NAME_SERVERS_DC" pattern="^(\d{1,3}\.){3}\d{1,3}(,\s*(\d{1,3}\.){3}\d{1,3})*$" title="Expected format: x.x.x.x,y.y.y.y">
+                <input type="text" id="NAME_SERVERS_DC" name="NAME_SERVERS_DC" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(,((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))*$" title="Expected format: 192.168.1.1 or 192.168.1.1,192.168.1.2">
                 
                 <label for="DC_IPV6">IPv6 Datacenter Interface IP:</label>
                 <input type="text" id="DC_IPV6" name="DC_IPV6">
