@@ -245,13 +245,6 @@ users:
     sudo: ALL=(ALL:ALL) NOPASSWD:ALL
     shell: /bin/bash
 bootcmd:
-  - modprobe hv_balloon
-  - modprobe hv_utils
-  - modprobe hv_vmbus
-  - modprobe hv_sock
-  - modprobe hv_storvsc
-  - modprobe hv_netvsc
-  - sh -c 'echo "hv_balloon\nhv_utils\nhv_vmbus\nhv_sock\nhv_storvsc\nhv_netvsc" >>/etc/initramfs-tools/modules' && update-initramfs -k all -u
   - [rm, -f, /etc/cloud/cloud.cfg.d/99-defaults.cfg]
   - [sed, -i, 's/^.*"provider":.*$/    "provider": "${CLOUD_PROVIDER}",/', ${DLAGENT_CONF_FILE}]
   - [sed, -i, 's/^.*"flags":.*$/    "flags": "${SAAS_FLAG}",/', ${DLAGENT_CONF_FILE}]
