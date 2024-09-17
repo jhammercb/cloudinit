@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Cloudinit Generator</title>
+    <title>Cloud-init Generator</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -10,197 +10,193 @@
             background-color: #f0f0f0;
             margin: 0;
             padding: 0;
+            min-height: 100vh;
+            text-align: left;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            overflow-y: auto;
-            text-align: left;
         }
         .container {
             background-color: #fff;
-            padding: 20px;
+            padding: 30px 40px;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
             width: 100%;
             margin: 20px;
-            text-align: left; 
         }
         .container img {
             display: block;
-            margin: 0 auto 40px auto;
-            max-width: 200px;
+            margin: 0 auto 30px auto;
+            max-width: 180px;
         }
         h1 {
             text-align: center;
             color: #333;
             font-weight: 600;
+            margin-bottom: 40px;
         }
         form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             width: 100%;
         }
         label {
-            margin-top: 10px;
+            margin-top: 15px;
             color: #555;
-            width: 100%;
-            text-align: left;
             font-weight: 600;
+            display: block;
         }
         input[type="text"], select, input[type="submit"] {
-            padding: 10px;
-            margin-top: 5px;
+            padding: 12px;
+            margin-top: 8px;
             border-radius: 5px;
             border: 1px solid #ccc;
             width: 100%;
             box-sizing: border-box;
             font-family: 'Montserrat', sans-serif;
-            text-align: left; 
         }
         input[type="submit"] {
-            background-color: #28a745;
+            background-color: #007bff;
             color: #fff;
             border: none;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 30px;
             font-weight: 600;
-            text-align: center;
         }
         input[type="submit"]:hover {
-            background-color: #218838;
+            background-color: #0069d9;
         }
         .hidden {
             display: none;
         }
+        .form-section {
+            margin-top: 20px;
+        }
+        .form-section.hidden {
+            display: none;
+        }
     </style>
     <script>
-        function toggleDatacenterFields() {
-            var armMode = document.getElementById('ARM_MODE').value;
-            var datacenterFields = document.getElementById('datacenter-fields');
-            if (armMode == '2') {
-                datacenterFields.classList.remove('hidden');
-            } else {
-                datacenterFields.classList.add('hidden');
-            }
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const armModeSelect = document.getElementById('ARM_MODE');
+            const hypervisorSelect = document.getElementById('HYPERVISOR');
+            const datacenterFields = document.getElementById('datacenter-fields');
+            const gatewayField = document.getElementById('INET_GW');
+            const dnsField = document.getElementById('NAME_SERVERS_INET');
 
-        function toggleHypervisorFields() {
-            var hypervisor = document.getElementById('HYPERVISOR').value;
-            var cloudFields = document.getElementById('cloud-fields');
-            if (hypervisor === 'cloud') {
-                cloudFields.classList.remove('hidden');
-            } else {
-                cloudFields.classList.add('hidden');
-            }
-        }
-
-        function validateForm() {
-            var otpPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-            var ipCidrPattern = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([0-9]|[1-2][0-9]|3[0-2])$/;
-            var ipPattern = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-            var dnsPattern = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(,((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))*$/;
-
-            var otp = document.getElementById('CB_OTP').value;
-            var inetIp = document.getElementById('INET_IP').value;
-            var inetGw = document.getElementById('INET_GW').value;
-            var nameServersInet = document.getElementById('NAME_SERVERS_INET').value;
-
-            if (!otpPattern.test(otp)) {
-                alert("Invalid OTP format. Expected format: 62557353-63f8-4b52-b393-326e4b4ce3d8");
-                return false;
+            function toggleDatacenterFields() {
+                datacenterFields.classList.toggle('hidden', armModeSelect.value !== '2');
             }
 
-            if (!ipCidrPattern.test(inetIp)) {
-                alert("Invalid IP Address and Mask CIDR format. Expected format: 192.168.1.1/24");
-                return false;
-            }
+            armModeSelect.addEventListener('change', toggleDatacenterFields);
 
-            if (!ipPattern.test(inetGw)) {
-                alert("Invalid Internet Gateway format. Expected format: 192.168.1.1");
-                return false;
-            }
-
-            if (nameServersInet && !dnsPattern.test(nameServersInet)) {
-                alert("Invalid DNS format. Expected format: 192.168.1.1 or 192.168.1.1,192.168.1.2");
-                return false;
-            }
-
-            return true;
-        }
-
-        function generateCloudConfig(otp, armMode) {
-            return `#cloud-config\nruncmd:\n- [bash, /home/cb/flask-apps/cloudinit-generator/brink_connector_deploy_cloud.sh, -o, "${otp}", -a, "${armMode}"]`;
-        }
-
-        function showCloudConfig(config) {
-            alert(config);
-        }
-
-        function syncDnsWithGateway() {
-            var gatewayField = document.getElementById('INET_GW');
-            var dnsField = document.getElementById('NAME_SERVERS_INET');
-            gatewayField.addEventListener('input', function() {
+            function syncDnsWithGateway() {
                 dnsField.value = gatewayField.value;
-            });
-        }
+            }
 
-        document.addEventListener('DOMContentLoaded', syncDnsWithGateway);
+            gatewayField.addEventListener('input', syncDnsWithGateway);
+
+            function validateForm(event) {
+                const otpPattern = /^[0-9a-fA-F-]{36}$/;
+                const ipCidrPattern = /^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/;
+                const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+                const dnsPattern = /^(\d{1,3}\.){3}\d{1,3}(,(\d{1,3}\.){3}\d{1,3})*$/;
+                const hostnamePattern = /^[a-zA-Z0-9\-]{1,63}$/;
+
+                const otp = document.getElementById('CB_OTP').value;
+                const inetIp = document.getElementById('INET_IP').value;
+                const inetGw = document.getElementById('INET_GW').value;
+                const nameServersInet = dnsField.value;
+                const hostname = document.getElementById('HOSTNAME').value;
+
+                if (!otpPattern.test(otp)) {
+                    alert("Invalid OTP format. Expected format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx");
+                    event.preventDefault();
+                    return false;
+                }
+
+                if (hostname && !hostnamePattern.test(hostname)) {
+                    alert("Invalid hostname format.");
+                    event.preventDefault();
+                    return false;
+                }
+
+                if (!ipCidrPattern.test(inetIp)) {
+                    alert("Invalid IP Address and Mask CIDR format. Expected format: 192.168.1.1/24");
+                    event.preventDefault();
+                    return false;
+                }
+
+                if (!ipPattern.test(inetGw)) {
+                    alert("Invalid Internet Gateway format. Expected format: 192.168.1.1");
+                    event.preventDefault();
+                    return false;
+                }
+
+                if (nameServersInet && !dnsPattern.test(nameServersInet)) {
+                    alert("Invalid DNS format. Expected format: 192.168.1.1 or 192.168.1.1,192.168.1.2");
+                    event.preventDefault();
+                    return false;
+                }
+            }
+
+            document.querySelector('form').addEventListener('submit', validateForm);
+        });
     </script>
 </head>
 <body>
     <div class="container">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuAoWa-psvka0jVjXQwyGIWHHhs-I8eYTwuQ&s" alt="Logo">
+        <img src="https://cloudbrink.com/wp-content/uploads/2022/11/Cloudbrink-Logo-2022.svg" alt="Logo">
         <h1>Cloud-init Generator</h1>
-        <form action="{{ url_for('submit') }}" method="post" onsubmit="return validateForm()">
+        <form action="{{ url_for('submit') }}" method="post">
             <label for="HYPERVISOR">Platform:</label>
-            <select id="HYPERVISOR" name="HYPERVISOR" required onchange="toggleHypervisorFields()">
+            <select id="HYPERVISOR" name="HYPERVISOR" required>
                 <option value="" disabled selected>Select a platform</option>
                 <option value="vmware">VMware ESXi</option>
                 <option value="hyperv">MS Hyper-V</option>
                 <option value="proxmox">Proxmox</option>
-                <option value="cloud">Nutanix AHV (in development)</option>
-                <option value="cloud">AWS (in development)</option>
-                <option value="cloud">GCP (in development)</option>
-                <option value="cloud">Azure (in development)</option>
+                <option value="cloud">Cloud Platforms (In Development)</option>
             </select>
 
+            <!-- Hostname Field -->
+            <label for="HOSTNAME">Hostname:</label>
+            <input type="text" id="HOSTNAME" name="HOSTNAME" pattern="[a-zA-Z0-9\-]{1,63}" title="Allowed characters: letters, numbers, hyphens. Max length: 63 characters.">
+
             <label for="CB_OTP">CB OTP:</label>
-            <input type="text" id="CB_OTP" name="CB_OTP" required pattern="[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" title="Expected format: 62557353-63f8-4b52-b393-326e4b4ce3d8">
+            <input type="text" id="CB_OTP" name="CB_OTP" required pattern="[0-9a-fA-F-]{36}" title="Expected format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
 
             <label for="ARM_MODE">ARM Mode:</label>
-            <select id="ARM_MODE" name="ARM_MODE" required onchange="toggleDatacenterFields()">
+            <select id="ARM_MODE" name="ARM_MODE" required>
                 <option value="1" selected>1</option>
                 <option value="2">2</option>
             </select>
 
-            <label for="INET_IP">IP Address and Mask CIDR (ex: 192.168.1.1/24):</label>
-            <input type="text" id="INET_IP" name="INET_IP" required pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([0-9]|[1-2][0-9]|3[0-2])$" title="Expected format: 192.168.1.1/24">
+            <label for="INET_IP">IP Address and Mask CIDR (e.g., 192.168.1.1/24):</label>
+            <input type="text" id="INET_IP" name="INET_IP" required pattern="^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$" title="Expected format: 192.168.1.1/24">
 
             <label for="INET_GW">Default Gateway:</label>
-            <input type="text" id="INET_GW" name="INET_GW" required pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" title="Expected format: 192.168.1.1">
+            <input type="text" id="INET_GW" name="INET_GW" required pattern="^(\d{1,3}\.){3}\d{1,3}$" title="Expected format: 192.168.1.1">
 
-            <label for="NAME_SERVERS_INET">DNS IP(s) (Comma Separated List):</label>
-            <input type="text" id="NAME_SERVERS_INET" name="NAME_SERVERS_INET" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(,((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))*$" title="Expected format: 192.168.1.1 or 192.168.1.1,192.168.1.2">
+            <label for="NAME_SERVERS_INET">DNS IP(s) (Comma Separated):</label>
+            <input type="text" id="NAME_SERVERS_INET" name="NAME_SERVERS_INET" pattern="^(\d{1,3}\.){3}\d{1,3}(,(\d{1,3}\.){3}\d{1,3})*$" title="Expected format: 192.168.1.1 or 192.168.1.1,192.168.1.2">
 
-            <div id="datacenter-fields" class="hidden">
+            <div id="datacenter-fields" class="form-section hidden">
+                <h2>Datacenter Interface Configuration</h2>
+
                 <label for="DC_IP">Datacenter Interface IP:</label>
-                <input type="text" id="DC_IP" name="DC_IP" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([0-9]|[1-2][0-9]|3[0-2])$" title="Expected format: 192.168.1.1/24">
+                <input type="text" id="DC_IP" name="DC_IP" pattern="^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$" title="Expected format: 192.168.1.1/24">
 
                 <label for="DC_GW">Datacenter Interface Gateway:</label>
-                <input type="text" id="DC_GW" name="DC_GW" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" title="Expected format: 192.168.1.1">
+                <input type="text" id="DC_GW" name="DC_GW" pattern="^(\d{1,3}\.){3}\d{1,3}$" title="Expected format: 192.168.1.1">
 
                 <label for="NAME_SERVERS_DC">DNS IPs for Datacenter Interface:</label>
-                <input type="text" id="NAME_SERVERS_DC" name="NAME_SERVERS_DC" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(,((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))*$" title="Expected format: 192.168.1.1 or 192.168.1.1,192.168.1.2">
-                
+                <input type="text" id="NAME_SERVERS_DC" name="NAME_SERVERS_DC" pattern="^(\d{1,3}\.){3}\d{1,3}(,(\d{1,3}\.){3}\d{1,3})*$" title="Expected format: 192.168.1.1 or 192.168.1.1,192.168.1.2">
+
                 <label for="DC_IPV6">IPv6 Datacenter Interface IP:</label>
                 <input type="text" id="DC_IPV6" name="DC_IPV6">
-                
+
                 <label for="DC_IPV6_GW">IPv6 Datacenter Gateway:</label>
                 <input type="text" id="DC_IPV6_GW" name="DC_IPV6_GW">
-                
+
                 <label for="DC_IPV6_DNS">IPv6 Datacenter DNS:</label>
                 <input type="text" id="DC_IPV6_DNS" name="DC_IPV6_DNS">
             </div>
