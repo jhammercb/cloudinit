@@ -16,6 +16,7 @@ CLOUD_PROVIDER=""
 SAAS_FLAG=""
 CONNECTOR_VERSION=""
 CONN_PILOT_VERSION=""
+HOSTNAME="connector-image"  # Default hostname
 
 # global scope variables
 TEMP_DIR="/tmp/CB-SETUP"
@@ -40,7 +41,7 @@ T_SKIPPED=0
 T_FAILURE=0
 
 function help_message() {
-    echo "usage: $0 -o OTP -a ARM_MODE -i INET_IP -g INET_GW [-d DC_IP] [-w DC_GW] [-n INET_IF_DNS] [-m DC_IF_DNS] [-f DC_IPV6] [-y DC_IPV6_GW] [-r DC_IPV6_DNS] [-p CLOUD_PROVIDER] [-e SAAS_FLAG] [-c CONNECTOR_VERSION] [-b CONN_PILOT_VERSION]"
+    echo "usage: $0 -o OTP -a ARM_MODE -i INET_IP -g INET_GW [-d DC_IP] [-w DC_GW] [-n INET_IF_DNS] [-m DC_IF_DNS] [-f DC_IPV6] [-y DC_IPV6_GW] [-r DC_IPV6_DNS] [-p CLOUD_PROVIDER] [-e SAAS_FLAG] [-c CONNECTOR_VERSION] [-b CONN_PILOT_VERSION] [-h HOSTNAME]"
     echo "-o OTP string"
     echo "-a ARM Mode refers the number of network interfaces (1 or 2)"
     echo "-i Internet interface ip (x.x.x.x/x)"
@@ -56,6 +57,7 @@ function help_message() {
     echo "-e Cloudbrink SaaS Environment"
     echo "-c CB-Connector Package Version"
     echo "-b Connector Pilot Package Version"
+    echo "-h Hostname for the VM (default: connector-image)"
 }
 
 function exit_on_error() {
@@ -215,27 +217,25 @@ NPEOF
         SAAS_FLAG="${DEFAULT_SAASFLAG}"
     fi
 
-    # log_message ":: ${CLOUD_PROVIDER} || ${DEFAULT_CLOUDPROVIDER}"
-    # log_message ":: ${SAAS_FLAG} || ${DEFAULT_SAASFLAG}"
 cat << NCEOF > ${NC_FILE}
 ${NP_CONTENT}
 NCEOF
 
-NP_STRING=$(echo "${NP_CONTENT}" | awk '{printf "%s\\n", $0}')
+    NP_STRING=$(echo "${NP_CONTENT}" | awk '{printf "%s\\n", $0}')
 
-log_message "Task 2/4 :: Generating the content for meta-data"
-cat << MDEOF > ${MD_FILE}
-instance-id: connector-image
-local-hostname: connector-image
+    log_message "Task 2/4 :: Generating the content for meta-data"
+    cat << MDEOF > ${MD_FILE}
+instance-id: ${HOSTNAME}
+local-hostname: ${HOSTNAME}
 MDEOF
 
-log_message "Task 3/4 :: Generating the content for user-data"
-cat << UDEOF > ${UD_FILE}
+    log_message "Task 3/4 :: Generating the content for user-data"
+    cat << UDEOF > ${UD_FILE}
 #cloud-config
 disable_root: true
 preserve_hostname: false
 manage_etc_hosts: true
-hostname: connector-image
+hostname: ${HOSTNAME}
 users:
   - name: cbrink
     gecos: cbrink
@@ -344,7 +344,8 @@ function create_iso() {
     fi
 
     if [[ -f "${ISO_DIR}/user-data" ]]; then
-        result=$(genisoimage -o "${ISO_FILE}" -J -V cidata -r "${ISO_DIR}/")
+        genisoimage -o "${ISO_FILE}" -J -V cidata -r "${ISO_DIR}/" >/dev/null 2>&1
+        result=$?
         if [[ ${result} -eq 0 ]]; then
             if [[ -f "${ISO_FILE}" ]]; then
                 ## to be uploaded into the data store
@@ -377,7 +378,7 @@ function main_setup() {
     echo -e "#####   CloudBrink's Connector-Agent Deployment   #####"
     echo -e "#######################################################"
 
-    while getopts ":o:a:i:g:d:w:s:n:m:f:y:r:p:e:c:b:" options; do
+    while getopts ":o:a:i:g:d:w:s:n:m:f:y:r:p:e:c:b:h:" options; do
         case "${options}" in
             o) CB_OTP="$OPTARG"
                 if [[ -z "${CB_OTP}" ]]; then
@@ -438,6 +439,9 @@ function main_setup() {
                 ;;
             b) CONN_PILOT_VERSION="$OPTARG"
                 ;;
+            h)
+                HOSTNAME="$OPTARG"
+                ;;
             :) echo "Error: -${OPTARG} requires an argument."
                exit_on_error
                 ;;
@@ -454,7 +458,7 @@ function main_setup() {
     log_message ":: Input Parameters ::"
     log_message "CB_OTP = ${CB_OTP} || ARM_MODE = ${ARM_MODE} || WAN_IP = ${INET_IP} || WAN_GW = ${INET_GW} || WAN_DNS = ${NAME_SERVERS_INET}"
     log_message "LAN_IP = ${DC_IP} || LAN_GW = ${DC_GW} || LAN_DNS = ${NAME_SERVERS_DC} || LAN_IPV6 = ${DC_IPV6} || LAN_IPV6_GW = ${DC_IPV6_GW} || LAN_IPV6_DNS = ${DC_IPV6_DNS}"
-    log_message "CLOUD_PROVIDER = ${CLOUD_PROVIDER} || SAAS_FLAG = ${SAAS_FLAG} || CONNECTOR_VERSION = ${CONNECTOR_VERSION} || CONN_PILOT_VERSION = ${CONN_PILOT_VERSION}"
+    log_message "CLOUD_PROVIDER = ${CLOUD_PROVIDER} || SAAS_FLAG = ${SAAS_FLAG} || CONNECTOR_VERSION = ${CONNECTOR_VERSION} || CONN_PILOT_VERSION = ${CONN_PILOT_VERSION} || HOSTNAME = ${HOSTNAME}"
 
     gen_userdata
     create_iso
